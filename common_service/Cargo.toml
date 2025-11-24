@@ -1,0 +1,9 @@
+[package]
+name = "common_service"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+jsonwebtoken = {version="10.2.0", features=["rust_crypto"]}
+serde = "1.0.228"
+
