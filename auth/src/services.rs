@@ -1,20 +1,36 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use common_service::schemas::Claim;
+
 use actix_web::{web, get, post, Responder, HttpRequest, HttpResponse};
-use crate::schemas::{RegisterRequest, LoginRequest, RefreshTokenRequest};
+use crate::schemas::{
+	RegisterRequest,
+	LoginRequest,
+	RefreshTokenRequest,
+	UpdateBusinessInfoRequest
+};
 
 // use serde_json;
 use serde_json::{json, Value as JsonValue};
 
 use crate::db::user as user_db;
 use crate::db::refresh_token as refresh_token_db;
+use crate::db::business as business_db;
 // use crate::db::user::Entity as UserEntity;
 // use crate::db::user::ActiveModel as ActiveUser;
 
 use sea_orm::{EntityTrait, QueryFilter, ColumnTrait, ActiveValue, ActiveModelTrait, TryIntoModel};
+use sea_orm::error::DbErr;
 
 use sha2::{Sha512, Digest};
 
+
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+struct MySt{
+	val: i32
+}
 
 fn print_type_of<T>(obj: &T){
 	println!("{}", std::any::type_name::<T>());
@@ -214,6 +230,35 @@ pub async fn logout_view(
 
 	active_token.delete(&config.db).await.unwrap();
 	HttpResponse::NoContent().json(json!({
+		"success": true
+	}))
+}
+
+#[post("/update_business_profile")]
+pub async fn update_business_profile(
+	config: web::Data<crate::Config>,
+	claim: Claim,
+	payload: web::Json<UpdateBusinessInfoRequest>
+)-> HttpResponse
+{
+	let var = payload.into_inner();
+
+	print_type_of(&var);
+	let (active_business, created) = match business_db::Model::update_or_create(
+		&config,
+		32,//claim.sub, //user_id
+		var
+	).await
+	{
+		Ok(result_tuple) => result_tuple,
+		Err(st) => {
+			println!("PRINT ERROR");
+			return HttpResponse::Ok().json(json!({
+				"error": format!("db error: {st}")
+			}));
+		}
+	};
+	HttpResponse::Ok().json(json!({
 		"success": true
 	}))
 }

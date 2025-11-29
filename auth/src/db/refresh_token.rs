@@ -14,7 +14,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::utils::generate_random_string;
 use crate::db::user as user_db;
 
-use crate::schemas::Claim;
+use common_service::schemas::Claim;
 use common_service::jwt_utils;
 
 
@@ -75,7 +75,7 @@ impl Model{
     pub fn generate_access_token(
         &self,
         user_id: i64,
-        login_type: &crate::common::LoginType
+        login_type: &common_service::schemas::LoginType
     )->String
     {
         let current_time_secs = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();

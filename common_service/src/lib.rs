@@ -1,4 +1,6 @@
 pub mod jwt_utils;
+pub mod extractors;
+pub mod schemas;
 
 use serde::{Serialize, Deserialize};
 

@@ -40,6 +40,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(mystate.clone()))
             .service(services::register)
             .service(services::login_user)
+            .service(services::update_business_profile)
             // .service(echo)
     })
     .bind(("127.0.0.1", 9987)).unwrap()

@@ -510,8 +510,10 @@ dependencies = [
 name = "common_service"
 version = "0.1.0"
 dependencies = [
+ "actix-web",
  "jsonwebtoken",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
