@@ -29,7 +29,10 @@ async fn main() -> std::io::Result<()> {
     // for v in env::vars(){
     //     println!("env: {:?}", v);
     // }
+    let HOST = "0.0.0.0";
+    let PORT = 9988;
     println!("{:?}", env::var("GLOBAL_SECRET_KEY").unwrap());
+    println!("server will be available on host: {} port: {}", HOST, PORT);
     let mystate = Config{
         db:get_db_connection().await,
         APP_SECRET: env::var("GLOBAL_SECRET_KEY").unwrap()
@@ -43,7 +46,7 @@ async fn main() -> std::io::Result<()> {
             .service(services::update_business_profile)
             // .service(echo)
     })
-    .bind(("127.0.0.1", 9987)).unwrap()
+    .bind((HOST, PORT)).unwrap()
     .run()
     .await
 }
