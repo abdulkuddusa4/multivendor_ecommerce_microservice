@@ -1,0 +1,27 @@
+FROM rust:latest as builder
+
+WORKDIR /app
+
+
+COPY auth/Cargo.toml auth/Cargo.lock ./auth/
+COPY common_service/Cargo.toml common_service/Cargo.lock ./common_service/
+
+# COPY common_service/ ./common_service/
+
+WORKDIR /app/auth
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+RUN cargo build --release || true
+
+WORKDIR /app
+COPY auth/src ./auth/src
+COPY common_service/src ./common_service/src
+
+WORKDIR /app/auth
+RUN cargo build --release
+
+FROM debian:buster-slim
+
+COPY --from=builder /app/auth/target/release/auth /usr/local/bin/auth
+
+CMD ["/usr/local/bin/auth"]
