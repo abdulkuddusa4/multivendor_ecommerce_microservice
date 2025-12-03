@@ -1,0 +1,65 @@
+FROM rust:latest as builder
+
+RUN apt-get update && apt-get install -y musl-tools
+RUN rustup target add x86_64-unknown-linux-musl
+
+WORKDIR /app
+
+COPY product/Cargo.toml product/Cargo.lock ./product/
+COPY common_service/Cargo.toml common_service/Cargo.lock ./common_service/
+
+WORKDIR /app/product
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+
+WORKDIR /app
+COPY product/src ./product/src
+COPY common_service/src ./common_service/src
+
+WORKDIR /app/product
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+
+FROM scratch
+
+COPY --from=builder /app/product/target/x86_64-unknown-linux-musl/release/product /product
+
+CMD ["/product"]
+
+
+
+
+# FROM rust:latest as builder
+
+# RUN apt-get update && apt-get install -y musl-tools
+# RUN rustup target add x86_64-unknown-linux-musl
+
+# WORKDIR /app
+
+# COPY auth/Cargo.toml auth/Cargo.lock ./auth/
+# COPY common_service/Cargo.toml common_service/Cargo.lock ./common_service/
+
+# WORKDIR /app/auth
+# RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+# RUN echo ">>>>>>>>> DEBUG <<<<<<<<<<"
+# RUN ls ../common_service
+
+# RUN cargo build --release --target x86_64-unknown-linux-musl
+
+# WORKDIR /app
+# COPY auth/src ./auth/src
+# COPY common_service/src ./common_service/src
+
+# WORKDIR /app/auth
+# RUN cargo build --release --target x86_64-unknown-linux-musl
+
+
+# FROM scratch
+
+# COPY --from=builder /app/auth/target/x86_64-unknown-linux-musl/release/auth /auth
+# COPY auth/.env /.env
+
+# CMD ["/auth"]

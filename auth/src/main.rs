@@ -29,14 +29,15 @@ async fn main() -> std::io::Result<()> {
     // for v in env::vars(){
     //     println!("env: {:?}", v);
     // }
+    println!("STARTING");
     let HOST = "0.0.0.0";
     let PORT = 9988;
     println!("{:?}", env::var("GLOBAL_SECRET_KEY").unwrap());
-    println!("server will be available on host: {} port: {}", HOST, PORT);
     let mystate = Config{
         db:get_db_connection().await,
         APP_SECRET: env::var("GLOBAL_SECRET_KEY").unwrap()
     };
+    println!("server will be available on host: {} port: {}", HOST, PORT);
     HttpServer::new(move || {
         let mut name = String::from("Roni");
         App::new()

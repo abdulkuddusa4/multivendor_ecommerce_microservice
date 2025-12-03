@@ -1,0 +1,39 @@
+# ---- Stage 1: Build ----
+FROM rust:latest as builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy Cargo.toml and Cargo.lock first
+# This allows Docker to cache dependencies
+COPY auth/Cargo.toml auth/Cargo.lock ./auth/
+COPY common_service/Cargo.toml common_service/Cargo.lock ./common_service/
+
+# Create an empty main.rs so cargo build works on dependencies only
+RUN mkdir auth/src && echo "fn main() {}" > auth/src/main.rs
+RUN mkdir common_service/src && echo "" > common_service/src/lib.rs
+
+# Build dependencies only
+WORKDIR /app/auth
+RUN cargo build --release
+
+# Now copy the real source code
+COPY auth/src /app/auth/src
+COPY common_service/src /app/common_service/src
+
+RUN	 echo ">>>>>>>>>>>><<<"
+RUN	 echo ">>>>>>>>>>>><<<"
+RUN	 echo ">>>>>>>>>>>><<<"
+RUN cat src/main.rs
+
+# Build the actual project
+RUN cargo build --release
+
+# ---- Stage 2: Minimal runtime ----
+FROM debian:bookworm-slim
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/auth/target/release/auth /usr/local/bin/auth
+
+# Set the entrypoint
+CMD ["/usr/local/bin/auth"]

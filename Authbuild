@@ -1,27 +1,44 @@
 FROM rust:latest as builder
 
-WORKDIR /app
 
+# RUN apt
+RUN apt-get update -y
+RUN apt-get install musl-tools -y
+RUN rustup target add x86_64-unknown-linux-musl
+# RUN
+
+WORKDIR /app
 
 COPY auth/Cargo.toml auth/Cargo.lock ./auth/
 COPY common_service/Cargo.toml common_service/Cargo.lock ./common_service/
 
 # COPY common_service/ ./common_service/
 
+WORKDIR /app/common_service
+RUN mkdir src && echo "" > src/lib.rs
+
 WORKDIR /app/auth
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 
-RUN cargo build --release || true
+
+RUN cargo build --release
 
 WORKDIR /app
 COPY auth/src ./auth/src
 COPY common_service/src ./common_service/src
 
 WORKDIR /app/auth
-RUN cargo build --release
 
-FROM debian:buster-slim
+# remove the dummy binary(created for installing dependencies and caching purpose)
+# to force a rebuild with the actual code
+# RUN rm -rf target/x86_64-unknown-linux-musl/release/auth*
 
-COPY --from=builder /app/auth/target/release/auth /usr/local/bin/auth
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
-CMD ["/usr/local/bin/auth"]
+FROM scratch
+
+COPY --from=builder /app/auth/target/x86_64-unknown-linux-musl/release/auth /auth
+COPY auth/.env /.env
+
+# EXPOSE 9988
+CMD ["/auth"]

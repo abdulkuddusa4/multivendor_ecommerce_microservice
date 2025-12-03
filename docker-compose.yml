@@ -1,0 +1,8 @@
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: Authbuild
+    ports:
+      - "1234:9988"
+
