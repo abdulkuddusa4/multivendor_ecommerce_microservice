@@ -45,7 +45,6 @@ async fn main() -> std::io::Result<()> {
             .service(services::register)
             .service(services::login_user)
             .service(services::update_business_profile)
-            // .service(echo)
     })
     .bind((HOST, PORT)).unwrap()
     .run()
