@@ -47,7 +47,7 @@ pub async fn register(
 )
 -> HttpResponse
 {
-	let obj = user_db::Entity::find()
+	let obj:Option<user_db::Model> = user_db::Entity::find()
 			.filter(
 				user_db::Column::Username.eq(&payload.username)
 			)
@@ -131,8 +131,8 @@ pub async fn login_user(
 	}
 
 	let (mut refresh_token, _created) = refresh_token_result.unwrap();
-	print_type_of(&refresh_token);
-	// let active_token:refresh_token_db::ActiveModel =refresh_token.into();
+
+
 	if !_created{
 		let mut active_refresh_token:refresh_token_db::ActiveModel = refresh_token.into();
 		active_refresh_token.refresh();
