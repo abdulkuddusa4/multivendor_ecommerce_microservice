@@ -1,0 +1,15 @@
+[env]
+RUST_BACKTRACE = "0"
+DATABASE_URL="sqlite://db.sqlite?mode=rwc"
+
+[alias]
+run_dev = [
+    "watch",
+    "-w", "src/",
+    # "-w", "migration/",
+    "-w", "Cargo.toml",
+    "-w", "../common_service/src/",
+    "-w", "../common_service/Cargo.toml",
+    "-x", "run",
+    # "-s", "cargo run -- -l 8888",
+]

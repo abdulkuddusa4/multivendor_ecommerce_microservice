@@ -10,7 +10,7 @@ use std::future::{ready, Ready};
 use crate::jwt_utils;
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum LoginType{
 	CUSTOMER,
 	BUSINESS
@@ -38,7 +38,6 @@ impl FromRequest for Claim{
             }
         };
 
-        // Convert header to string
         let auth_str = match auth_header.to_str() {
             Ok(s) => s,
             Err(_) => {
@@ -48,14 +47,12 @@ impl FromRequest for Claim{
             }
         };
 
-        // Check if it starts with "Bearer "
         if !auth_str.starts_with("Bearer ") {
             return ready(Err(ErrorUnauthorized(json!({
                 "error": "Authorization header contains invalid characters"
             }))));
         }
 
-        // Extract the token
         let GLOBAL_SECRET = env::var("GLOBAL_SECRET_KEY").unwrap();
         let token = auth_str[7..].trim().to_string();
         let claim:Claim = match jwt_utils::jwt_decode(&token, &GLOBAL_SECRET){
@@ -70,3 +67,31 @@ impl FromRequest for Claim{
 	}
 }
 
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BusinessClaim{
+    pub sub: i64,
+    pub exp: i64
+}
+
+
+impl FromRequest for BusinessClaim{
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(request: &HttpRequest, payload: &mut Payload)->Self::Future{
+        let claim:Claim = match Claim::from_request(request, payload).into_inner(){
+            Ok(claim) => claim,
+            Err::<Claim, Error>(err) => {
+                return ready(Err::<BusinessClaim, Error>(err));
+            }
+        };
+
+        if claim.login_type == LoginType::BUSINESS{
+            return ready(Ok(Self{sub: claim.sub, exp: claim.exp}));
+        }
+        return ready(Err(ErrorUnauthorized(json!({
+            "error": "not a business"
+        }))));
+    }
+}
