@@ -16,8 +16,6 @@ use serde_json::{json, Value as JsonValue};
 use crate::db::user as user_db;
 use crate::db::refresh_token as refresh_token_db;
 use crate::db::business as business_db;
-// use crate::db::user::Entity as UserEntity;
-// use crate::db::user::ActiveModel as ActiveUser;
 
 use sea_orm::{EntityTrait, QueryFilter, ColumnTrait, ActiveValue, ActiveModelTrait, TryIntoModel};
 use sea_orm::error::DbErr;

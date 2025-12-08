@@ -1,8 +1,11 @@
+use serde::{Serialize};
+use serde_json::{json};
+
 use sea_orm::entity::prelude::*;
 
 use sea_orm::{ActiveValue, TryIntoModel};
 #[sea_orm::model]
-#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize)]
 #[sea_orm(table_name = "product")]
 pub struct Model {
     #[sea_orm(primary_key)]
