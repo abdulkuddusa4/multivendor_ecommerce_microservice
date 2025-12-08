@@ -20,7 +20,7 @@ impl ActiveModelBehavior for ActiveModel {}
 
 
 impl ActiveModel{
-    async fn add_new_product(
+    pub async fn add_new_product(
         config: &actix_web::web::Data<crate::Config>,
         user_id: i64,
         name: &str,
@@ -47,6 +47,4 @@ impl ActiveModel{
         
         return Some(product);
     }
-
-
 }

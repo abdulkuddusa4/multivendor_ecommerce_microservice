@@ -74,7 +74,6 @@ pub struct BusinessClaim{
     pub exp: i64
 }
 
-
 impl FromRequest for BusinessClaim{
     type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -92,6 +91,33 @@ impl FromRequest for BusinessClaim{
         }
         return ready(Err(ErrorUnauthorized(json!({
             "error": "not a business"
+        }))));
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CustomerClaim{
+    pub sub: i64,
+    pub exp: i64
+}
+
+impl FromRequest for CustomerClaim{
+    type Error = Error;
+    type Future = Ready<Result<Self, Self::Error>>;
+
+    fn from_request(request: &HttpRequest, payload: &mut Payload)->Self::Future{
+        let claim:Claim = match Claim::from_request(request, payload).into_inner(){
+            Ok(claim) => claim,
+            Err::<Claim, Error>(err) => {
+                return ready(Err::<CustomerClaim, Error>(err));
+            }
+        };
+
+        if claim.login_type == LoginType::CUSTOMER{
+            return ready(Ok(Self{sub: claim.sub, exp: claim.exp}));
+        }
+        return ready(Err(ErrorUnauthorized(json!({
+            "error": "not a customer"
         }))));
     }
 }
