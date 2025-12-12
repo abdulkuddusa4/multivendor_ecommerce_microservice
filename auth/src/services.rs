@@ -1,5 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use redis::AsyncCommands;
+
 use common_service::schemas::Claim;
 
 use actix_web::{web, get, post, Responder, HttpRequest, HttpResponse};
@@ -26,17 +28,20 @@ use sha2::{Sha512, Digest};
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-struct MySt{
-	val: i32
+struct LoginCache{
+	user_id: i64,
+	flag: bool
 }
 
 fn print_type_of<T>(obj: &T){
 	println!("{}", std::any::type_name::<T>());
 }
 
-fn print_type<T>(){
-	println!("{}", std::any::type_name::<T>());
-}
+
+const LOGIN_CACHE_EXPIRY: u64=20;
+
+
+
 #[post("/register")]
 pub async fn register(
 	config: web::Data<crate::Config>,
@@ -88,7 +93,60 @@ pub async fn login_user(
 )
 -> HttpResponse
 {
-	println!("{:?}", payload.login_type);
+	// println!("{:?}", payload.login_type);
+
+	let cache_key:String = format!("{}:{}", &payload.username, &payload.password);
+	
+	let mut redis_conn = config.redis.clone();
+	// let mut redis = config.redis.lock().await;
+    // let client = redis::Client::open("redis://127.0.0.1/").unwrap();
+    // let mut redis = client.get_multiplexed_async_connection().await.unwrap();
+	let redis_result = redis_conn.get::<_, String>(&cache_key).await;
+	// drop(redis);
+
+	// let _ = match redis_result{
+	// 	Ok(json_st) => {
+	// 		let LoginCache{user_id, flag} = serde_json::from_str(&json_st).unwrap();
+	// 		if flag{
+	// 			let refresh_token_result = refresh_token_db::ActiveModel::get_or_create(
+	// 				&config,
+	// 				user_id
+	// 			).await;
+
+	// 			if let Err(_) = refresh_token_result{
+	// 				println!("{:?}", refresh_token_result);
+	// 				return HttpResponse::InternalServerError().json(json!({
+	// 					"error": "internal database connection occured ddd"
+	// 				}));
+	// 			}
+
+	// 			let (mut refresh_token, _created) = refresh_token_result.unwrap();
+
+
+	// 			if !_created{
+	// 				let mut active_refresh_token:refresh_token_db::ActiveModel = refresh_token.into();
+	// 				active_refresh_token.refresh();
+
+	// 				active_refresh_token = active_refresh_token.save(&config.db).await.unwrap();
+	// 				refresh_token = active_refresh_token.try_into_model().unwrap();
+	// 			}
+	// 			let access_token = refresh_token.generate_access_token(user_id, &payload.login_type);
+	// 			HttpResponse::Ok().json(json!({
+	// 				"refresh": refresh_token.refresh_token,
+	// 				"access": access_token
+	// 			}))
+	// 		}
+	// 		else{
+	// 			return HttpResponse::Ok().json(json!({
+	// 				"error": "invalid password"
+	// 			}));
+	// 		}
+	// 	},
+	// 	Err(msg) => HttpResponse::Ok().into()
+	// };
+
+	
+	
 	let user_result = user_db::Entity::find()
 				.filter(
 					user_db::Column::Username.eq(&payload.username)
@@ -110,11 +168,19 @@ pub async fn login_user(
 
 	let user = user_option.unwrap();
 
+	// let mut redis = config.redis.lock().await;
 	if !user.check_password(&payload.password){
+		let cache_val = serde_json::to_string(&LoginCache{user_id: user.id, flag:true}).unwrap();
+
+		let _: () = redis_conn.set_ex(&cache_key, cache_val, LOGIN_CACHE_EXPIRY).await.unwrap();
 		return HttpResponse::Unauthorized().json(json!({
 			"error": "invalid password"
 		}));
 	}
+
+	let cache_val = serde_json::to_string(&LoginCache{user_id: user.id, flag:true}).unwrap();
+	let _: () = redis_conn.set_ex(&cache_key, cache_val, LOGIN_CACHE_EXPIRY).await.unwrap();
+	// drop(redis);
 
 	let refresh_token_result = refresh_token_db::ActiveModel::get_or_create(
 		&config,
@@ -234,7 +300,7 @@ pub async fn logout_view(
 
 #[post("/update_business_profile")]
 pub async fn update_business_profile(
-	config: web::Data<crate::Config>,
+	mut config: web::Data<crate::Config>,
 	claim: Claim,
 	payload: web::Json<UpdateBusinessInfoRequest>
 )-> HttpResponse
@@ -256,6 +322,16 @@ pub async fn update_business_profile(
 			}));
 		}
 	};
+	HttpResponse::Ok().json(json!({
+		"success": true
+	}))
+}
+
+
+#[get("/test")]
+pub async fn test(
+)
+-> HttpResponse{
 	HttpResponse::Ok().json(json!({
 		"success": true
 	}))
