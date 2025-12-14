@@ -98,11 +98,9 @@ pub async fn login_user(
 	let cache_key:String = format!("{}:{}", &payload.username, &payload.password);
 	
 	let mut redis_conn = config.redis.clone();
-	// let mut redis = config.redis.lock().await;
-    // let client = redis::Client::open("redis://127.0.0.1/").unwrap();
-    // let mut redis = client.get_multiplexed_async_connection().await.unwrap();
-	let redis_result = redis_conn.get::<_, String>(&cache_key).await;
-	// drop(redis);
+
+	// let redis_result = redis_conn.get::<_, String>(&cache_key).await;
+	// // drop(redis);
 
 	// let _ = match redis_result{
 	// 	Ok(json_st) => {
@@ -330,6 +328,17 @@ pub async fn update_business_profile(
 
 #[get("/test")]
 pub async fn test(
+)
+-> HttpResponse{
+	HttpResponse::Ok().json(json!({
+		"success": true
+	}))
+}
+
+
+#[macro_utils::my_func]
+#[get("/testd/{user_id}")]
+pub async fn testdd(
 )
 -> HttpResponse{
 	HttpResponse::Ok().json(json!({

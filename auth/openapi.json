@@ -1,0 +1,230 @@
+
+
+
+
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Nail Studio",
+    "version": "1.0.0",
+    "description": "Your project description"
+  },
+  "paths": {
+    "/accounts/account_register/": {
+      "post": {
+        "operationId": "accounts_account_register_create",
+        "tags": [
+          "accounts"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/accounts/email_login/": {
+      "post": {
+        "operationId": "accounts_email_login_create",
+        "tags": [
+          "accounts"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailLogin"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/oauth_connect/callback/": {
+      "get": {
+        "operationId": "oauth_connect_callback_retrieve",
+        "tags": [
+          "oauth_connect"
+        ],
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/oauth_connect/get_oauth2_callback_url/": {
+      "post": {
+        "operationId": "oauth_connect_get_oauth2_callback_url_create",
+        "tags": [
+          "oauth_connect"
+        ],
+        "security": [
+          {
+            "jwtAuth": []
+          },
+          {
+
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "No response body"
+          }
+        }
+      }
+    },
+    "/oauth_connect/oauth2_connect/": {
+      "post": {
+        "operationId": "oauth_connect_oauth2_connect_create",
+        "tags": [
+          "oauth_connect"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectRequest"
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectRequest"
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "jwtAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectRequest"
+                }
+              }
+            },
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConnectRequest": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "$ref": "#/components/schemas/ServiceEnum"
+          }
+        },
+        "required": [
+          "service"
+        ]
+      },
+      "EmailLogin": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ServiceEnum": {
+        "enum": [
+          "servicem8",
+          "hubspot"
+        ],
+        "type": "string",
+        "description": "* `servicem8` - servicem8\n* `hubspot` - hubspot"
+      }
+    },
+    "securitySchemes": {
+      "jwtAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}

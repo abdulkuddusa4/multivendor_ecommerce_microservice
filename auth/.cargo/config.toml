@@ -10,6 +10,8 @@ run_dev = [
     "-w", "Cargo.toml",
     "-w", "../common_service/src/",
     "-w", "../common_service/Cargo.toml",
+    "-w", "../macro_utils/src/",
+    "-w", "../macro_utils/Cargo.toml",
     "-x", "run",
     # "-s", "cargo run -- -l 8888",
 ]

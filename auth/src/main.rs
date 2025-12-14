@@ -1,3 +1,6 @@
+#![allow(warnings)]
+
+
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -29,6 +32,40 @@ struct Config{
     db: DatabaseConnection,
     redis: ConnectionManager,
     APP_SECRET: String
+}
+
+#[actix_web::get("/docs")]
+async fn docs() -> impl Responder {
+    actix_web::HttpResponse::Ok()
+        .content_type("text/html")
+        .body(r#"
+<!DOCTYPE html>
+<html>
+<head>
+  <title>API Docs</title>
+  <link rel="stylesheet"
+        href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+</head>
+<body>
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+<script>
+  SwaggerUIBundle({
+    url: '/openapi.json',
+    dom_id: '#swagger-ui'
+  });
+</script>
+</body>
+</html>
+"#)
+}
+
+use actix_files::NamedFile;
+
+#[actix_web::get("/openapi.json")]
+async fn openapi_schema()->Result<NamedFile, std::io::Error>
+{
+    actix_files::NamedFile::open("openapi.json")
 }
 
 #[actix_web::main]
@@ -70,6 +107,8 @@ async fn main() -> std::io::Result<()> {
         let mut name = String::from("Roni");
         App::new()
             .app_data(web::Data::new(mystate.clone()))
+            .service(docs)
+            .service(openapi_schema)
             .service(services::register)
             .service(services::login_user)
             .service(services::update_business_profile)
